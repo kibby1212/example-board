@@ -1,0 +1,23 @@
+# --- Backend (Spring Boot) ---
+board-backend/bin/
+board-backend/build/
+board-backend/.gradle/
+board-backend/.settings/
+board-backend/.classpath
+board-backend/.project
+board-backend/target/
+board-backend/*.class
+
+# --- Frontend (React / Vite) ---
+board-frontend/node_modules/
+board-frontend/dist/
+board-frontend/build/
+board-frontend/.env.local
+board-frontend/.env.development.local
+board-frontend/.env.test.local
+board-frontend/.env.production.local
+
+# --- Common / OS ---
+.DS_Store
+Thumbs.db
+*.log
