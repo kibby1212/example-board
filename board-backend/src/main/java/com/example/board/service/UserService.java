@@ -1,6 +1,7 @@
 package com.example.board.service;
 
 import com.example.board.entity.User;
+import com.example.board.dto.JoinRequestDto;
 import com.example.board.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,16 +21,25 @@ public class UserService {
      * AuthController에서 호출합니다.
      */
     @Transactional // 저장 작업이므로 트랜잭션 필요
-    public void join(User user) {
-        // 중복 체크는 가장 기본!
-        if (userRepository.existsByUsername(user.getUsername())) {
-            throw new RuntimeException("이미 사용 중인 아이디입니다! 🐼");
+    public void join(JoinRequestDto dto) {
+        // 1. 중복 검사 (이미 있다면 예외 발생)
+        if (userRepository.existsByUsername(dto.getUsername())) {
+            throw new RuntimeException("이미 존재하는 아이디입니다. 🐼");
         }
 
-        // 비밀번호 암호화 및 기본 권한 설정
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setRole("ROLE_USER");
+        // 2. DTO -> Entity 변환
+        User user = new User();
+        user.setUsername(dto.getUsername());
+        user.setNickname(dto.getNickname());
         
+        // 3. 비밀번호 암호화 (가장 중요!)
+        String encodedPassword = passwordEncoder.encode(dto.getPassword());
+        user.setPassword(encodedPassword);
+        
+        // 4. 권한 설정 (기본값)
+        user.setRole("ROLE_USER");
+
+        // 5. DB 저장
         userRepository.save(user);
     }
 

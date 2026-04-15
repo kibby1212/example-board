@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../services/api';
+import api from '../api/api';
 
 const JoinPage = () => {
   const navigate = useNavigate();
 
+  // 1. JoinRequestDto와 1:1로 매칭되는 상태 구조
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -20,6 +21,7 @@ const JoinPage = () => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
     
+    // 아이디를 수정하면 다시 중복 확인을 하도록 리셋
     if (name === 'username') {
       setIsIdChecked(false);
       setIdError('');
@@ -32,7 +34,8 @@ const JoinPage = () => {
       return;
     }
     try {
-      const res = await api.get(`/api/auth/check-username?username=${username}`);
+      // 2. api.js 공통 경로 사용 (/api 제거)
+      const res = await api.get(`/auth/check-username?username=${username}`);
       if (res.data === true) {
         setIdError('이미 사용 중인 아이디입니다. 😢');
         setIsIdChecked(false);
@@ -53,17 +56,18 @@ const JoinPage = () => {
     }
 
     try {
-      await api.post('/api/auth/join', formData);
+      // 3. 백엔드 JoinRequestDto로 데이터 전송
+      await api.post('/auth/join', formData);
       alert("회원가입 성공! 이제 로그인을 해볼까요? 🥳");
       navigate('/login');
     } catch (err) {
+      // 백엔드에서 던진 RuntimeException 메시지 활용
       alert("가입 실패: " + (err.response?.data || "다시 시도해주세요."));
     }
   };
 
   return (
     <div className="max-w-md mx-auto px-6 py-24 min-h-screen bg-white">
-      {/* 1. 헤더 섹션 */}
       <header className="mb-12 text-center">
         <h1 className="text-4xl font-black tracking-tighter text-black uppercase">Join Us</h1>
         <p className="text-sm font-medium text-gray-400 mt-2 tracking-widest uppercase">
@@ -72,7 +76,7 @@ const JoinPage = () => {
       </header>
 
       <form onSubmit={handleSubmit} className="space-y-10">
-        {/* 2. 아이디 입력 구역 */}
+        {/* 아이디 입력 */}
         <div className="space-y-2">
           <label className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 ml-1">Username</label>
           <div className="flex gap-4">
@@ -82,7 +86,7 @@ const JoinPage = () => {
               value={username}
               onChange={handleChange}
               required
-              className="flex-1 border-b border-gray-200 py-3 focus:border-black outline-none transition-all placeholder:text-gray-200 font-medium"
+              className="flex-1 border-b border-gray-200 py-3 focus:border-black outline-none transition-all placeholder:text-gray-200 font-medium bg-transparent"
             />
             <button 
               type="button" 
@@ -92,12 +96,11 @@ const JoinPage = () => {
               CHECK
             </button>
           </div>
-          {/* 에러/성공 메시지 */}
           {idError && <p className="text-[11px] text-red-500 font-bold ml-1">{idError}</p>}
-          {isIdChecked && <p className="text-[11px] text-blue-500 font-bold ml-1">사용 가능한 아이디입니다.</p>}
+          {isIdChecked && <p className="text-[11px] text-blue-500 font-bold ml-1">사용 가능한 아이디입니다. ✨</p>}
         </div>
 
-        {/* 3. 비밀번호 입력 구역 */}
+        {/* 비밀번호 입력 */}
         <div className="space-y-2">
           <label className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 ml-1">Password</label>
           <input
@@ -107,11 +110,11 @@ const JoinPage = () => {
             value={password}
             onChange={handleChange}
             required
-            className="w-full border-b border-gray-200 py-3 focus:border-black outline-none transition-all placeholder:text-gray-200"
+            className="w-full border-b border-gray-200 py-3 focus:border-black outline-none transition-all placeholder:text-gray-200 bg-transparent"
           />
         </div>
 
-        {/* 4. 닉네임 입력 구역 */}
+        {/* 닉네임 입력 */}
         <div className="space-y-2">
           <label className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 ml-1">Nickname</label>
           <input
@@ -120,11 +123,10 @@ const JoinPage = () => {
             value={nickname}
             onChange={handleChange}
             required
-            className="w-full border-b border-gray-200 py-3 focus:border-black outline-none transition-all placeholder:text-gray-200 font-medium"
+            className="w-full border-b border-gray-200 py-3 focus:border-black outline-none transition-all placeholder:text-gray-200 font-medium bg-transparent"
           />
         </div>
 
-        {/* 5. 제출 버튼 */}
         <div className="pt-6">
           <button 
             type="submit" 

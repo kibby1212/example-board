@@ -1,11 +1,12 @@
 package com.example.board.controller;
 
-import com.example.board.entity.Comment;
+import com.example.board.dto.CommentCreateRequestDto;
+import com.example.board.dto.CommentResponseDto;
 import com.example.board.service.CommentService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
@@ -18,36 +19,39 @@ public class CommentController {
     private final CommentService commentService;
 
     /**
-     * 1. 댓글 작성 (회원/비회원 통합)
+     * 1. 댓글 작성 (DTO 기반)
      */
     @PostMapping("/{boardId}")
-    public ResponseEntity<?> save(@PathVariable Long boardId, 
-                                  @RequestBody Comment comment, 
-                                  Authentication authentication) {
+    public ResponseEntity<CommentResponseDto> save(
+            @PathVariable Long boardId, 
+            @RequestBody CommentCreateRequestDto dto, // 👈 Entity 대신 DTO 사용
+            Authentication authentication) {
         
-        // ⭐ 핵심: 신분증(authentication)이 있으면 이름을 가져오고, 없으면 null을 줍니다.
-        // 이 한 줄이 NPE 에러를 해결하는 마법의 지팡이입니다! 🪄
         String username = (authentication != null) ? authentication.getName() : null;
 
-        // 서비스의 save 메서드는 이제 username이 null이면 비회원 로직으로 처리합니다.
-        Comment savedComment = commentService.save(boardId, username, comment);
+        // 서비스에서 이미 DTO를 반환하도록 고쳤으므로 그대로 돌려줍니다.
+        CommentResponseDto savedComment = commentService.save(boardId, username, dto);
         
         return ResponseEntity.ok(savedComment);
     }
 
     /**
-     * 2. 특정 게시글의 댓글 목록 조회
+     * 2. 특정 게시글의 댓글 목록 조회 (반환: List<CommentResponseDto>)
      */
     @GetMapping("/{boardId}")
-    public List<Comment> getComments(@PathVariable Long boardId) {
-        return commentService.getCommentsByBoard(boardId);
+    public ResponseEntity<List<CommentResponseDto>> getComments(@PathVariable Long boardId) {
+        List<CommentResponseDto> comments = commentService.getCommentsByBoard(boardId);
+        return ResponseEntity.ok(comments);
     }
 
     /**
      * 3. 회원용 댓글 삭제 (토큰 필요)
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteComment(@PathVariable Long id, Authentication authentication) {
+    public ResponseEntity<String> deleteComment(
+            @PathVariable Long id, 
+            Authentication authentication) {
+        
         if (authentication == null) {
             return ResponseEntity.status(401).body("로그인이 필요합니다. 🔐");
         }
@@ -60,7 +64,10 @@ public class CommentController {
      * 4. 비회원용 댓글 삭제 (비밀번호 필요)
      */
     @PostMapping("/{id}/delete")
-    public ResponseEntity<?> deleteGuestComment(@PathVariable Long id, @RequestBody Map<String, String> body) {
+    public ResponseEntity<String> deleteGuestComment(
+            @PathVariable Long id, 
+            @RequestBody Map<String, String> body) {
+        
         String password = body.get("password");
         
         if (password == null || password.isEmpty()) {

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import api from '../services/api';
+import api from '../api/api';
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
@@ -12,18 +12,25 @@ const LoginPage = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await api.post('/api/auth/login', { username, password });
-      login(res.data); // 토큰과 유저 정보를 컨텍스트에 저장
-      alert("환영합니다! 🐼");
+      // 1. api.js 공통 설정 덕분에 '/api'를 제거합니다. 🦾
+      // 백엔드 LoginRequestDto 규격 { username, password } 전송
+      const res = await api.post('/auth/login', { username, password });
+      
+      // 2. 백엔드 LoginResponseDto 규격 { token, username, nickname } 수신
+      // AuthContext의 login 함수에 그대로 넘겨주면 알아서 평평하게 저장됩니다.
+      login(res.data); 
+      
+      alert(`${res.data.nickname}님, 환영합니다! 🐼✨`);
       navigate('/');
     } catch (err) {
-      alert("로그인 실패: 아이디나 비번을 확인하세요.");
+      // 백엔드에서 던진 "비밀번호가 일치하지 않습니다" 등의 메시지를 보여줍니다.
+      alert(err.response?.data || "로그인 실패: 아이디나 비번을 확인하세요. 🚨");
     }
   };
 
   return (
     <div className="max-w-md mx-auto px-6 py-32 min-h-screen bg-white">
-      {/* 1. 상단 헤더: 판다 로고 스타일 */}
+      {/* 상단 헤더: 판다 로고 스타일 */}
       <header className="mb-16 text-center">
         <h1 
           className="text-5xl font-black tracking-tighter text-black uppercase cursor-pointer mb-2"
@@ -37,7 +44,7 @@ const LoginPage = () => {
       </header>
 
       <form onSubmit={handleLogin} className="space-y-12">
-        {/* 2. 아이디 입력 구역 */}
+        {/* 아이디 입력 구역 */}
         <div className="space-y-2">
           <label className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 ml-1">Username</label>
           <input 
@@ -46,11 +53,11 @@ const LoginPage = () => {
             value={username} 
             onChange={e => setUsername(e.target.value)} 
             required 
-            className="w-full border-b border-gray-200 py-3 focus:border-black outline-none transition-all placeholder:text-gray-200 font-medium" 
+            className="w-full border-b border-gray-200 py-3 focus:border-black outline-none transition-all placeholder:text-gray-200 font-medium bg-transparent" 
           />
         </div>
 
-        {/* 3. 비밀번호 입력 구역 */}
+        {/* 비밀번호 입력 구역 */}
         <div className="space-y-2">
           <label className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 ml-1">Password</label>
           <input 
@@ -59,11 +66,11 @@ const LoginPage = () => {
             value={password} 
             onChange={e => setPassword(e.target.value)} 
             required 
-            className="w-full border-b border-gray-200 py-3 focus:border-black outline-none transition-all placeholder:text-gray-200" 
+            className="w-full border-b border-gray-200 py-3 focus:border-black outline-none transition-all placeholder:text-gray-200 bg-transparent" 
           />
         </div>
 
-        {/* 4. 로그인 버튼 및 부가 링크 */}
+        {/* 로그인 버튼 및 부가 링크 */}
         <div className="pt-6">
           <button 
             type="submit" 

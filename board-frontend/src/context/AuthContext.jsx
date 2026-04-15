@@ -5,18 +5,13 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true); // 로딩 상태 추가 (새로고침 시 깜빡임 방지)
 
-  // 1. 로그인 함수: 데이터를 평평하게(Flatten) 폅니다.
+  // 1. 로그인 함수: 서버가 준 DTO를 그대로 담습니다.
+  // 서버 응답(data) 구조: { token: "...", username: "...", nickname: "..." }
   const login = (data) => {
-    // 백엔드 구조: { user: { id, nickname... }, token: "..." }
-    // 우리가 쓸 구조: { id, nickname, ..., token: "..." }
-    const flattenedUser = {
-      ...data.user,    // 유저 정보 싹 풀고
-      token: data.token // 토큰을 같은 층에 합체!
-    };
-
-    setUser(flattenedUser);
-    localStorage.setItem('user', JSON.stringify(flattenedUser));
+    setUser(data);
+    localStorage.setItem('user', JSON.stringify(data));
   };
 
   const logout = () => {
@@ -24,15 +19,18 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('user');
   };
 
-  // 새로고침 시에도 이미 평평해진 데이터를 읽어오므로 그대로 유지됩니다.
+  // 2. 앱 시작 시 저장된 유저 정보 불러오기
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
-    if (savedUser) setUser(JSON.parse(savedUser));
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+    setLoading(false); // 데이터 확인 완료 후 로딩 해제
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
-      {children}
+    <AuthContext.Provider value={{ user, login, logout, loading }}>
+      {!loading && children} {/* 로딩 중에는 자식 컴포넌트를 렌더링하지 않음 */}
     </AuthContext.Provider>
   );
 };

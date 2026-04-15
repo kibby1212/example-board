@@ -726,7 +726,7 @@ import Navbar from "./components/common/Navbar";
 import BoardListPage from "./pages/BoardListPage";
 import BoardDetailPage from "./pages/BoardDetailPage";
 import LoginPage from "./pages/LoginPage";
-import WritePage from "./pages/WritePage";
+
 import BoardForm from './pages/BoardForm';
 import JoinPage from "./pages/JoinPage";
 // 나머지 페이지들도 import 하세요!
@@ -743,7 +743,6 @@ function App() {
 
             {/* ⭐ 여기 주소(path)들을 각각 다르게 수정해야 합니다! */}
             <Route path="/login" element={<LoginPage />} />
-            {/* <Route path="/write" element={<WritePage />} /> */}
             <Route path="/write" element={<BoardForm isEdit={false} />} />
             <Route path="/edit/:id" element={<BoardForm isEdit={true} />} />
             <Route path="/join" element={<JoinPage />} />

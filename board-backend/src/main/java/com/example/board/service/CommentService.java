@@ -1,5 +1,7 @@
 package com.example.board.service;
 
+import com.example.board.dto.CommentCreateRequestDto;
+import com.example.board.dto.CommentResponseDto;
 import com.example.board.entity.Board;
 import com.example.board.entity.Comment;
 import com.example.board.entity.User;
@@ -12,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,39 +27,41 @@ public class CommentService {
     private final UserRepository userRepository;
 
     /**
-     * 1. 댓글 작성 (회원/비회원 통합)
+     * 1. 댓글 작성 (DTO 기반)
      */
     @Transactional
-    public Comment save(Long boardId, String username, Comment comment) {
-        // 공통: 게시글 존재 확인
+    public CommentResponseDto save(Long boardId, String username, CommentCreateRequestDto dto) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
+
+        Comment comment = new Comment();
+        comment.setContent(dto.getContent());
         comment.setBoard(board);
 
         if (username != null) {
-            // [회원 로직]
+            // 회원 로직
             User user = userRepository.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
             comment.setUser(user);
-            comment.setGuestNickname(null); // 혹시 모를 쓰레기 데이터 방지
-            comment.setGuestPassword(null);
         } else {
-            // [비회원 로직]
-            if (comment.getGuestPassword() != null) {
-                // 비회원 비밀번호 암호화 저장
-                comment.setGuestPassword(passwordEncoder.encode(comment.getGuestPassword()));
+            // 비회원 로직
+            comment.setGuestNickname(dto.getGuestNickname());
+            if (dto.getGuestPassword() != null) {
+                comment.setGuestPassword(passwordEncoder.encode(dto.getGuestPassword()));
             }
-            comment.setUser(null); 
         }
 
-        return commentRepository.save(comment);
+        Comment savedComment = commentRepository.save(comment);
+        return new CommentResponseDto(savedComment);
     }
 
     /**
-     * 2. 특정 게시글의 댓글 목록 조회
+     * 2. 특정 게시글의 댓글 목록 조회 (DTO 리스트 반환)
      */
-    public List<Comment> getCommentsByBoard(Long boardId) {
-        return commentRepository.findByBoardId(boardId);
+    public List<CommentResponseDto> getCommentsByBoard(Long boardId) {
+        return commentRepository.findByBoardId(boardId).stream()
+                .map(CommentResponseDto::new)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -67,7 +72,6 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new RuntimeException("댓글을 찾을 수 없습니다."));
 
-        // 작성자 본인 확인
         if (comment.getUser() == null || !comment.getUser().getUsername().equals(username)) {
             throw new RuntimeException("본인이 작성한 댓글만 삭제할 수 있습니다.");
         }
@@ -83,12 +87,10 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new RuntimeException("댓글을 찾을 수 없습니다."));
         
-        // 회원 글을 비회원 경로로 지우려 할 때 방지
         if (comment.getUser() != null) {
             throw new RuntimeException("회원 게시글은 비밀번호로 삭제할 수 없습니다.");
         }
 
-        // 비밀번호 대조
         if (passwordEncoder.matches(inputPassword, comment.getGuestPassword())) {
             commentRepository.delete(comment);
         } else {
@@ -100,7 +102,7 @@ public class CommentService {
      * 4. 댓글 수정 (회원 전용 예시)
      */
     @Transactional
-    public Comment update(Long commentId, String username, String newContent) {
+    public CommentResponseDto update(Long commentId, String username, String newContent) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new RuntimeException("댓글을 찾을 수 없습니다."));
 
@@ -109,6 +111,6 @@ public class CommentService {
         }
 
         comment.setContent(newContent);
-        return comment; 
+        return new CommentResponseDto(comment); // 수정된 결과도 DTO로 반환!
     }
 }
