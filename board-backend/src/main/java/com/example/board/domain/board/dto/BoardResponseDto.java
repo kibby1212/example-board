@@ -12,11 +12,12 @@ public class BoardResponseDto {
     private Long id;
     private String title;
     private String content;
-    private String nickname;     // 회원 닉네임 혹은 비회원 닉네임 통합
-    private boolean isMember;    // 회원글 여부 (프론트에서 수정/삭제 버튼 노출 여부 결정 시 유용)
+    private String nickname;
+    private boolean isMember;
     private int viewCount;
     private LocalDateTime createdAt;
-    private int commentCount;    // 댓글 개수만 따로 추출 (전체 댓글 객체를 던지는 대신)
+    private int commentCount;
+    private String imageUrl; // 🐼 1. 사진 경로를 담을 필드 추가!
 
     public BoardResponseDto(Board board) {
         this.id = board.getId();
@@ -25,8 +26,9 @@ public class BoardResponseDto {
         this.viewCount = board.getViewCount();
         this.createdAt = board.getCreatedAt();
         this.commentCount = board.getComments().size();
+        this.imageUrl = board.getImageUrl(); // 🐼 2. 엔티티에서 데이터를 꺼내옵니다.
 
-        // 닉네임 통합 로직: DTO에서 미리 처리해서 리액트를 편하게 해줍니다.
+        // 닉네임 통합 로직
         if (board.getUser() != null) {
             this.nickname = board.getUser().getNickname();
             this.isMember = true;

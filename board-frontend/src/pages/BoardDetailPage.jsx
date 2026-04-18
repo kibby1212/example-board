@@ -9,6 +9,7 @@ const BoardDetailPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [board, setBoard] = useState(null);
+  const SERVER_URL = "http://localhost:8080";
 
   useEffect(() => {
     fetchBoard();
@@ -98,6 +99,20 @@ const BoardDetailPage = () => {
           </div>
         </div>
       </header>
+
+      {board.imageUrl && (
+        <div className="mb-12 border-4 border-black p-1 bg-gray-50 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <img 
+            src={`${SERVER_URL}${board.imageUrl}`} 
+            alt="Board content" 
+            className="w-full h-auto object-cover block"
+            onError={(e) => {
+              console.error("이미지 로드 실패! 경로를 확인하세요. 🐼💦");
+              e.target.style.display = 'none'; // 로드 실패 시 영역 숨김
+            }}
+          />
+        </div>
+      )}
 
       <article className="min-h-[400px] text-lg leading-relaxed text-gray-800 whitespace-pre-wrap font-medium mb-24">
         {board.content}

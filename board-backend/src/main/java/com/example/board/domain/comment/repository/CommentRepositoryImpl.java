@@ -1,7 +1,9 @@
 package com.example.board.domain.comment.repository;
 
 import com.example.board.domain.comment.Comment;
-import com.example.board.entity.QComment; // 🐼 아까 생성 확인한 그 파일!
+// 🐼 아까 생성 확인한 그 파일!
+import com.example.board.domain.comment.QComment;
+
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 
