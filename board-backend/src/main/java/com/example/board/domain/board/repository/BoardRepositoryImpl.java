@@ -2,6 +2,8 @@ package com.example.board.domain.board.repository;
 
 import com.example.board.domain.board.Board;
 import com.example.board.domain.board.QBoard; // 🐼 아까 생성한 Q클래스!
+import com.example.board.domain.user.QUser;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

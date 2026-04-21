@@ -108,6 +108,7 @@ public class BoardService {
         boardRepository.delete(board);
     }
 
+   
     // ==========================================
     // 3. 목록 조회 & 검색 (List & Search)
     // ==========================================
@@ -119,6 +120,7 @@ public class BoardService {
     public Page<BoardResponseDto> search(String keyword, Pageable pageable) {
         return boardRepository.searchBoards(keyword, pageable).map(BoardResponseDto::new);
     }
+
 
     // ==========================================
     // 4. 내부 헬퍼 메서드 (Private Helpers)
